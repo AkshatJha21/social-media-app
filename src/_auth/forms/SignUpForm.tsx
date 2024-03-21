@@ -1,4 +1,3 @@
-import React from 'react'
 import { Button } from "@/components/ui/button"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -15,13 +14,16 @@ import { Input } from "@/components/ui/input"
 import { signupValidation } from '@/lib/validation'
 import Loader from '@/components/shared/Loader'
 import { Link } from 'react-router-dom'
-import { createUserAccount } from '@/lib/appwrite/api'
 import { useToast } from "@/components/ui/use-toast"
+import { useCreateUserAccount, useSignInAccount } from '@/lib/react-query/queriesAndMutations'
 
 const SignUpForm = () => {
 
-  const isLoading = false;
   const { toast } = useToast();
+
+  const { mutateAsync: createUserAccount, isLoading: isCreatingUser } = useCreateUserAccount();
+
+  const { mutateAsync: signInAccount, isLoading: isSigningIn } = useSignInAccount();
 
   const form = useForm<z.infer<typeof signupValidation>>({
     resolver: zodResolver(signupValidation),
@@ -42,8 +44,16 @@ const SignUpForm = () => {
       });
     }
 
-    // const session = await signInAccount()
+    const session = await signInAccount({
+      email: values.email,
+      password: values.password
+    });
     
+    if(!session) {
+      return toast({ 
+        title: 'Sign in failed. Please try again.' 
+      });
+    }
   }
 
   return (
@@ -110,7 +120,7 @@ const SignUpForm = () => {
               )}
               />
             <Button className='shad-button_primary' type="submit">
-              {isLoading ? (
+              {isCreatingUser ? (
                 <div className='flex-center gap-2'>
                   <Loader /> Loading...
                 </div>
