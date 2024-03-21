@@ -32,6 +32,8 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const checkAuthUser = async () => {
         try {
+            setIsLoading(true); // Set loading state to true
+
             const currentAccount = await getCurrentUser();
 
             if (currentAccount) {
@@ -42,25 +44,26 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     email: currentAccount.email,
                     imageUrl: currentAccount.imageUrl,
                     bio: currentAccount.bio
-                })
+                });
 
                 setIsAuthenticated(true);
+                setIsLoading(false); // Set loading state to false after successful authentication
 
                 return true;
-            };
+            }
 
+            setIsLoading(false); // Set loading state to false if no current account found
             return false;
         } catch (error) {
             console.log(error);
+            setIsLoading(false); // Set loading state to false in case of error
             return false;
-        } finally {
-            setIsLoading(false);
         }
     };
 
     useEffect(() => {
         // || localStorage.getItem('cookieFallback') === null
-        if(localStorage.getItem('cookieFallback') === '[]') {
+        if (localStorage.getItem('cookieFallback') === '[]') {
             navigate('/sign-in');
         }
 
@@ -74,14 +77,15 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isAuthenticated,
         setIsAuthenticated,
         checkAuthUser
-    }
+    };
 
-  return (
-    <AuthContext.Provider value={value}>
-        {children}
-    </AuthContext.Provider>
-  )
-}
+    return (
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
 
 export default AuthProvider;
 

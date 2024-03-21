@@ -53,7 +53,7 @@ export async function saveUserToDB(user: {
 
 export async function signInAccount(user: { email: string; password: string; }) {
     try {
-        const session = await account.createSession(user.email, user.password);
+        const session = await account.createEmailPasswordSession(user.email, user.password);
 
         return session;
     } catch (error) {
@@ -65,18 +65,29 @@ export async function getCurrentUser() {
     try {
         const currentAccount = await account.get();
 
-        if (!currentAccount) throw Error;
+        if (!currentAccount || !currentAccount.$id) {
+            throw new Error("Current account not found or missing ID");
+        }
+
+        console.log("Current Account ID:", currentAccount.$id);
 
         const currentUser = await databases.listDocuments(
             appwriteConfig.databaseId,
             appwriteConfig.userCollectionId,
-            [Query.equal('accountId', currentAccount.$id)]
+            [
+                Query.equal('accountId', currentAccount.$id.toString()) // Ensure accountId is a string
+            ]
         );
 
-        if (!currentUser) throw Error;
+        if (!currentUser || !currentUser.documents || currentUser.documents.length === 0) {
+            throw new Error("User not found");
+        }
 
         return currentUser.documents[0];
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        throw error; // Rethrow the error for the caller to handle
     }
 }
+
+
