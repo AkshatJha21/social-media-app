@@ -65,7 +65,7 @@ const SignUpForm = () => {
       navigate('/');
     } else {
       return toast({
-        title: 'Sign Up failed. Please try again.'
+        title: 'Sign up failed. Please try again.'
       });
     }
   }
